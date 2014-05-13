@@ -1,0 +1,228 @@
+-- MySQL dump 10.13  Distrib 5.5.37, for debian-linux-gnu (x86_64)
+--
+-- Host: localhost    Database: footiepweb
+-- ------------------------------------------------------
+-- Server version	5.5.37-0ubuntu0.12.04.1
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+--
+-- Current Database: `footiepweb`
+--
+
+CREATE DATABASE /*!32312 IF NOT EXISTS*/ `footiepweb` /*!40100 DEFAULT CHARACTER SET latin1 */;
+
+USE `footiepweb`;
+
+--
+-- Table structure for table `competition`
+--
+
+DROP TABLE IF EXISTS `competition`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `competition` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `competition`
+--
+
+LOCK TABLES `competition` WRITE;
+/*!40000 ALTER TABLE `competition` DISABLE KEYS */;
+/*!40000 ALTER TABLE `competition` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `game`
+--
+
+DROP TABLE IF EXISTS `game`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `game` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) NOT NULL,
+  `score_90m_home` int(11) NOT NULL,
+  `score_90m_away` int(11) NOT NULL,
+  `kickoff_gmt` date NOT NULL,
+  `cup_result` enum('home-win','away-win') DEFAULT NULL,
+  `needs_result` tinyint(1) NOT NULL,
+  `tournament_id` int(11) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `FK_tournament_id` (`tournament_id`),
+  CONSTRAINT `FK_tournament_id` FOREIGN KEY (`tournament_id`) REFERENCES `tournament` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `game`
+--
+
+LOCK TABLES `game` WRITE;
+/*!40000 ALTER TABLE `game` DISABLE KEYS */;
+/*!40000 ALTER TABLE `game` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `game_competition`
+--
+
+DROP TABLE IF EXISTS `game_competition`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `game_competition` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `game_id` int(11) NOT NULL,
+  `competition_id` int(11) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `FK_game_id` (`game_id`),
+  KEY `FK_competition_id` (`competition_id`),
+  CONSTRAINT `FK_competition_id` FOREIGN KEY (`competition_id`) REFERENCES `competition` (`id`),
+  CONSTRAINT `FK_game_id` FOREIGN KEY (`game_id`) REFERENCES `game` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `game_competition`
+--
+
+LOCK TABLES `game_competition` WRITE;
+/*!40000 ALTER TABLE `game_competition` DISABLE KEYS */;
+/*!40000 ALTER TABLE `game_competition` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `prediction`
+--
+
+DROP TABLE IF EXISTS `prediction`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `prediction` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `game_id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `score_90m_home` int(11) NOT NULL,
+  `score_90m_away` int(11) NOT NULL,
+  `cup_result` enum('home-win','away-win') DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `FK_pred_game_id` (`game_id`),
+  KEY `FK_pred_user_id` (`user_id`),
+  CONSTRAINT `FK_pred_user_id` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`),
+  CONSTRAINT `FK_pred_game_id` FOREIGN KEY (`game_id`) REFERENCES `game` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `prediction`
+--
+
+LOCK TABLES `prediction` WRITE;
+/*!40000 ALTER TABLE `prediction` DISABLE KEYS */;
+/*!40000 ALTER TABLE `prediction` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `tournament`
+--
+
+DROP TABLE IF EXISTS `tournament`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `tournament` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `tournament`
+--
+
+LOCK TABLES `tournament` WRITE;
+/*!40000 ALTER TABLE `tournament` DISABLE KEYS */;
+/*!40000 ALTER TABLE `tournament` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `user`
+--
+
+DROP TABLE IF EXISTS `user`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `user` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `nickname` varchar(255) NOT NULL,
+  `email` varchar(255) NOT NULL,
+  `confirmed_email` tinyint(1) NOT NULL,
+  `is_admin` tinyint(1) NOT NULL,
+  `password_sha` varchar(1024) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `email` (`email`),
+  UNIQUE KEY `nickname` (`nickname`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `user`
+--
+
+LOCK TABLES `user` WRITE;
+/*!40000 ALTER TABLE `user` DISABLE KEYS */;
+/*!40000 ALTER TABLE `user` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `user_competition`
+--
+
+DROP TABLE IF EXISTS `user_competition`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `user_competition` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_id` int(11) NOT NULL,
+  `competition_id` int(11) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `FK_uc_user_id` (`user_id`),
+  KEY `FK_uc_competition_id` (`competition_id`),
+  CONSTRAINT `FK_uc_user_id` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`)
+  CONSTRAINT `FK_uc_competition_id` FOREIGN KEY (`competition_id`) REFERENCES `competition` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `user_competition`
+--
+
+LOCK TABLES `user_competition` WRITE;
+/*!40000 ALTER TABLE `user_competition` DISABLE KEYS */;
+/*!40000 ALTER TABLE `user_competition` ENABLE KEYS */;
+UNLOCK TABLES;
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+
+-- Dump completed on 2014-05-12 23:38:58

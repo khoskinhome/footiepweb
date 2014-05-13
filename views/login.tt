@@ -1,0 +1,16 @@
+LOGIN
+
+
+
+<form action="login" method='post' >
+user =  <input name='user' type ='text' >
+
+<br> 
+
+pass = <input name='pass' type ='password' > 
+
+
+<input type="submit" value="Submit">
+
+</form>
+
