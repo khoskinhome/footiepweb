@@ -29,3 +29,19 @@ template: "simple"
 
 session: "cookie"
 session_cookie_key: "random encryption key"
+
+
+plugins:
+        Database:
+            driver: 'mysql'
+            database: 'ftypweb'
+            host: 'localhost'
+            port: 3306
+            username: 'ftypuser'
+            password: 'changethispassword'
+            connection_check_threshold: 10
+            dbi_params:
+                RaiseError: 1
+                AutoCommit: 1
+            on_connect_do: ["SET NAMES 'utf8'", "SET CHARACTER SET 'utf8'" ]
+            log_queries: 1

@@ -19,6 +19,8 @@ WriteMakefile(
     PREREQ_PM => {
         'Test::More' => 0,
         'Dancer::Session::Cookie' => 0,
+        'Dancer::Plugin::Database' => 0,
+        'Digest::SHA' =>0,
         'YAML'       => 0,
         'Dancer'     => 1.3123,
     },

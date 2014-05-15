@@ -1,6 +1,16 @@
 package FootiePWeb;
 use Dancer ':syntax';
 
+use Dancer::Plugin::Database;
+
+##use Digest::SHA;
+use Digest::SHA qw(sha512_hex);
+
+#use Dancer::Logger;
+#use Dancer::Config    'setting';
+#use Dancer::FileUtils 'path';
+#use Dancer::ModuleLoader;
+
 our $VERSION = '0.1';
 
 get '/' => sub {
@@ -33,15 +43,44 @@ get '/login' => sub {
     # vars->{requested_path}, so could be put in a hidden field in the form
     template 'login', { path => vars->{requested_path} };
 };
- 
+
+get '/loginout' => sub {
+    session user => '';
+    # instead of the above , maybe use :-
+    # session->destroy
+
+    template 'login', { path => vars->{requested_path} };
+};
+
 post '/login' => sub {
     # Validate the username and password they supplied
-    if (params->{user} eq 'bob' && params->{pass} eq 'letmein') {
-        session user => params->{user};
-        redirect params->{path} || '/';
-    } else {
+
+    my $sth = database->prepare(
+       'select * from user where email = ?',
+    );
+
+    $sth->execute(params->{user});
+#    template 'display_widget', { widget => $sth->fetchrow_hashref };
+
+    my $sha_param_password = sha512_hex(params->{pass});
+    if (params->{user} eq 'stderr') {
+        print STDERR "\n\n stderr !! : sha_param_password == ".$sha_param_password."\n";
+    }
+
+    if ( my $rowrh = $sth->fetchrow_hashref ) {
+
+#        my $digest = sha512_hex($rowrh->{password_sha});
+#        print STDERR "\n\n password_sha = ".$rowrh->{password_sha}." : sha_param_password == ".$sha_param_password."\n";
+
+        if ($rowrh->{password_sha} eq $sha_param_password ) {
+            session user => params->{user};
+            redirect params->{path} || '/';
+        }
+    }
+    else {
         redirect '/login?failed=1';
     }
+
 };
 
 

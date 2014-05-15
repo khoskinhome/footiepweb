@@ -1,6 +1,12 @@
 
 ./lib/FootiePWeb.pm
 
+
+./mysql.user-add.sql
+
+
+./config.yml
+
 ./views/index.tt
 
 ./views/request-login.tt
@@ -9,6 +15,8 @@
 ./views/predictions.tt
 ./views/league.tt
 
+
+./Makefile.PL
 
 ./views/layouts
 ./views/layouts/main.tt
@@ -36,7 +44,6 @@
 ./views/index.tt
 ./views/layouts
 ./views/layouts/main.tt
-./Makefile.PL
 ./environments
 ./environments/production.yml
 ./environments/development.yml
@@ -45,5 +52,4 @@
 ./t/002_index_route.t
 ./bin
 ./bin/app.pl
-./config.yml
 
