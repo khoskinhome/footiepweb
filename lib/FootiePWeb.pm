@@ -14,7 +14,7 @@ use Digest::SHA qw(sha512_hex);
 our $VERSION = '0.1';
 
 get '/' => sub {
-    template 'index';
+    template 'main' => { karlvar => "itsakarl!" };
 };
 
 
@@ -32,7 +32,7 @@ Standard-user can
 =cut
 
 hook 'before' => sub {
-    if (! session('user') && request->path_info !~ m{^/login}) {
+    if (! session('email') && request->path_info !~ m{^/login} && request->path_info !~ m{^/register}) {
         var requested_path => request->path_info;
         request->path_info('/login');
     }
@@ -44,8 +44,8 @@ get '/login' => sub {
     template 'login', { path => vars->{requested_path} };
 };
 
-get '/loginout' => sub {
-    session user => '';
+get '/logout' => sub {
+    session email => '';
     # instead of the above , maybe use :-
     # session->destroy
 
@@ -53,17 +53,17 @@ get '/loginout' => sub {
 };
 
 post '/login' => sub {
-    # Validate the username and password they supplied
+    # Validate the user's email and password they supplied
 
     my $sth = database->prepare(
        'select * from user where email = ?',
     );
 
-    $sth->execute(params->{user});
+    $sth->execute(params->{email});
 #    template 'display_widget', { widget => $sth->fetchrow_hashref };
 
     my $sha_param_password = sha512_hex(params->{pass});
-    if (params->{user} eq 'stderr') {
+    if (params->{email} eq 'stderr') {
         print STDERR "\n\n stderr !! : sha_param_password == ".$sha_param_password."\n";
     }
 
@@ -73,44 +73,134 @@ post '/login' => sub {
 #        print STDERR "\n\n password_sha = ".$rowrh->{password_sha}." : sha_param_password == ".$sha_param_password."\n";
 
         if ($rowrh->{password_sha} eq $sha_param_password ) {
-            session user => params->{user};
-            redirect params->{path} || '/';
+            print STDERR "\n\nlogin for ".params->{email}." with sha_param_password == ".$sha_param_password."\n";
+            session email => params->{email};
+            return redirect params->{path} || '/';
+        }
+        else {
+            print STDERR "\n\n couldn't login ".params->{email}." : sha_param_password == ".$sha_param_password."\n";
         }
     }
-    else {
-        redirect '/login?failed=1';
+    redirect '/login?failed=1';
+
+};
+
+get '/forgot-password'  => sub { template 'forgot-password' };
+post '/forgot-password' => sub { };
+
+# get the register page :-
+get '/register' => sub { template 'register' };
+
+# submit the register
+post '/register' => sub {
+
+    #########################
+    # validate passwords
+    if ( params->{pass} ne params->{pass2} ) {
+        return template 'error-message' => { error_message => 'passwords do not match up' };
     }
 
+    if ( length (params->{pass}) < 6 ) {
+        return template 'error-message' => { error_message => 'passwords is less than 6 characters long. choose a longer one.' };
+    }
+    #########################
+    # validate email
+    if ( length params->{email} < 6 ) {
+        return template 'error-message' => { error_message => 'email is less than 6 characters long. choose a longer one.' };
+    }
+    # TODO proper email checking  .
+    my $sth = database->prepare(
+       'select * from user where email = ? ',
+    );
+    $sth->execute(params->{email} );
+    if ( my $rowrh = $sth->fetchrow_hashref ) {
+        return template 'error-message' => { error_message => 'that email address has already been registered.' };
+    }
+    #########################
+    # validate nickname
+    if ( length params->{nickname} < 2 ) {
+        return template 'error-message' => { error_message => 'nickname is less than 2 characters long. choose a longer one.' };
+    }
+
+    $sth = database->prepare(
+       'select * from user where nickname = ? ',
+    );
+
+    $sth->execute( params->{nickname} );
+    if ( my $rowrh = $sth->fetchrow_hashref ) {
+        return template 'error-message' => { error_message => 'that nickname has already been registered.' };
+    }
+    #########################
+    my $sha_param_password = sha512_hex(params->{pass});
+
+    #########################
+    $sth = database->prepare(
+       'insert into user (email, nickname, password_sha) values ( ? , ? , ? ) ',
+    );
+
+    $sth->execute( params->{email}, params->{nickname}, $sha_param_password );
+
+    # TODO. We really should make the user confirm the email account.
+    # i.e. send an email to them with a checking_token_emailed ( at a time checking_token_emailed_gmt_date )
+
+    session email => params->{email};
+    session nickname => params->{nickname};
+    return redirect params->{path} || '/';
 };
 
-
-# get the request-login page :-
-get '/user/request-login' => sub { template 'request-login' };
-
-# submit the request-password
-post '/user/request-login' => sub { 
-
-};
-
-# get the login page :-
-#get '/user/login' => sub { template 'login' };
-
-# submit the password
-#post '/user/login' => sub { };
-
+#####################
 # get the change-password page :-
-get '/user/change-password' => sub { template 'change-password' };
+get '/change-own-password' => sub { template 'change-own-password' };
 # submit the password
-post '/user/change-password' => sub { 
+post '/change-own-password' => sub {
+#here karl
+};
+#####################
+get '/change-other-password' => sub { template 'change-other-password' };
+# submit the password
+post '/change-other-password' => sub {
 
+#    my $sth = database->prepare(
+#       'select * from user where email = ?',
+#    );
+#
+#    $sth->execute(session('user'));
+#    #$sth->execute(params->{user});
+##    template 'display_widget', { widget => $sth->fetchrow_hashref };
+#
+#    my $sha_param_password = sha512_hex(params->{pass});
+#    if (params->{user} eq 'stderr') {
+#        print STDERR "\n\n stderr !! : sha_param_password == ".$sha_param_password."\n";
+#    }
+#
+#    if ( my $rowrh = $sth->fetchrow_hashref ) {
+#
+##        my $digest = sha512_hex($rowrh->{password_sha});
+##        print STDERR "\n\n password_sha = ".$rowrh->{password_sha}." : sha_param_password == ".$sha_param_password."\n";
+#
+#        if ($rowrh->{password_sha} eq $sha_param_password ) {
+#            print STDERR "\n\nlogin for ".params->{user}." with sha_param_password == ".$sha_param_password."\n";
+#            session user => params->{user};
+#            return redirect params->{path} || '/';
+#        }
+#        else {
+#            print STDERR "\n\n couldn't login ".params->{user}." : sha_param_password == ".$sha_param_password."\n";
+#        }
+#
+#
+#    }
+#
+#    redirect '/login?failed=1';
+#
 };
 
-get  '/user/predictions' => sub { template 'predictions'};
-post '/user/predictions' => sub {}
+#####################
+get  '/predictions' => sub { template 'predictions'};
+post '/predictions' => sub {}
 
 ;
 
-get  '/user/league' => sub { template 'league' };
+get  '/league' => sub { template 'league' };
 
 
 =pod
@@ -188,6 +278,8 @@ mysql > create table user (
     confirmed_email boolean not null,
     is_admin boolean not null,
     password_sha varchar(1024) not null,
+    checking_token_emailed varchar(1024) NULL ,
+    checking_token_emailed_gmt_date date null ,
     primary key ( id ),
     unique (email),
     unique (nickname)

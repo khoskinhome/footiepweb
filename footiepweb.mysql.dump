@@ -149,6 +149,8 @@ CREATE TABLE `user` (
   `confirmed_email` tinyint(1) NOT NULL,
   `is_admin` tinyint(1) NOT NULL,
   `password_sha` varchar(1024) NOT NULL,
+  `checking_token_emailed` varchar(1024) NULL,
+  `checking_token_emailed_gmt_date` date NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `email` (`email`),
   UNIQUE KEY `nickname` (`nickname`)

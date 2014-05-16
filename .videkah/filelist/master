@@ -7,21 +7,35 @@
 
 ./config.yml
 
-./views/index.tt
 
-./views/request-login.tt
+./views/navigation.tt
+
+./views/main.tt
+
+./views/error-message.tt
 ./views/login.tt
-./views/change-password.tt
+./views/register.tt
+./views/change-own-password.tt
+./views/change-other-password.tt
+./views/forgot-password.tt
+
 ./views/predictions.tt
 ./views/league.tt
 
+
+# deprecated >>
+./views/request-login.tt
+./views/change-password.tt
+# << deprecated
 
 ./Makefile.PL
 
 ./views/layouts
 ./views/layouts/main.tt
 
+footiepweb.mysql.dump
 
+./views/index.tt
 ./
 ./public
 ./public/javascripts

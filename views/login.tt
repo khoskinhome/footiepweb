@@ -1,16 +1,25 @@
+[% INCLUDE navigation.tt %]
 LOGIN
 
 
-
 <form action="login" method='post' >
-user =  <input name='user' type ='text' >
 
-<br> 
+<div id='email'>
+    email =  <input name='email' type ='text' >
+</div>
 
-pass = <input name='pass' type ='password' > 
+<div id='nickname'>
+    nickname =  <input name='nickname' type ='text' >
+</div>
 
+<div id='password'>
+    pass = <input name='pass' type ='password' >
+</div>
 
-<input type="submit" value="Submit">
+<div id='submit'>
+    <input type="submit" value="Submit">
+</div>
 
 </form>
+
 
