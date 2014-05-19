@@ -1,0 +1,4 @@
+
+INSERT INTO `user` ( nickname,email,confirmed_email, is_admin,password_sha ) VALUES ('karl','karl@khoskin.co.uk',1,1,'3bbed9c106ceaea9e1d1f851b493a52582ae6f6deab8170da43da346a8710622b21d6c2ca14c6336bdc770f161673bef5edad6e65d86b05be62817bc9088d924');
+
+

@@ -1,0 +1,23 @@
+NAVIGATION
+
+
+[% IF session.email %]
+    Hello [% session.email %]
+
+    <div id='logout'><a href="/logout">Logout</a></div>
+    <div id='change-own-password'><a href="/change-own-password">Change Password</a></div>
+    <div id='change-other-password'><a href="/change-other-password">Change Other Password</a></div>
+    <div id='predictions'><a href="/predictions">Predictions</a></div>
+    <div id='league'><a href="/league">League</a></div>
+
+[% ELSE %]
+
+    <div id='register'><a href="/register">Register</a></div>
+    <div id='login'><a href="/login">Login</a></div>
+
+[% END %]
+
+
+
+
+
