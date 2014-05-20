@@ -5,19 +5,19 @@ LOGIN
 <form action="login" method='post' >
 
 <div id='email'>
-    email =  <input name='email' type ='text' >
+    email =  <input name='email' type ='text' />
 </div>
 
 <div id='nickname'>
-    nickname =  <input name='nickname' type ='text' >
+    nickname =  <input name='nickname' type ='text' />
 </div>
 
 <div id='password'>
-    pass = <input name='pass' type ='password' >
+    pass = <input name='pass' type ='password' />
 </div>
 
 <div id='submit'>
-    <input type="submit" value="Submit">
+    <input type="submit" value="Submit"/>
 </div>
 
 </form>

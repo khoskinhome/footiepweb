@@ -2,11 +2,17 @@ NAVIGATION
 
 
 [% IF session.email %]
-    Hello [% session.email %]
+
+    <div id='greeting'>Hello [% session.nickname %]</div>
 
     <div id='logout'><a href="/logout">Logout</a></div>
-    <div id='change-own-password'><a href="/change-own-password">Change Password</a></div>
-    <div id='change-other-password'><a href="/change-other-password">Change Other Password</a></div>
+    <div id='change-password'><a href="/change-password">Change Password</a></div>
+    <div id='forgot-password'><a href="/forgot-password">Forgot Password</a></div>
+
+    [% IF user_is_admin == 1 %]
+            <div id='change-other-password'><a href="/change-other-password">Change Other Password</a></div>
+    [% END %]
+
     <div id='predictions'><a href="/predictions">Predictions</a></div>
     <div id='league'><a href="/league">League</a></div>
 

@@ -1,12 +1,9 @@
 
 ./lib/FootiePWeb.pm
 
-
 ./mysql.user-add.sql
 
-
 ./config.yml
-
 
 ./views/navigation.tt
 
@@ -15,7 +12,7 @@
 ./views/error-message.tt
 ./views/login.tt
 ./views/register.tt
-./views/change-own-password.tt
+./views/change-password.tt
 ./views/change-other-password.tt
 ./views/forgot-password.tt
 

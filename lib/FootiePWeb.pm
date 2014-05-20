@@ -17,7 +17,6 @@ get '/' => sub {
     template 'main' => { karlvar => "itsakarl!" };
 };
 
-
 =pod
 ##########################################################
 Standard-user can
@@ -45,9 +44,10 @@ get '/login' => sub {
 };
 
 get '/logout' => sub {
-    session email => '';
+    #session email => '';
+    #session nickname => '';
     # instead of the above , maybe use :-
-    # session->destroy
+    session->destroy;
 
     template 'login', { path => vars->{requested_path} };
 };
@@ -56,10 +56,12 @@ post '/login' => sub {
     # Validate the user's email and password they supplied
 
     my $sth = database->prepare(
-       'select * from user where email = ?',
+       'select * from user where email = ? or nickname = ? ',
     );
 
-    $sth->execute(params->{email});
+#    print STDERR "\n\n /login : params nickname == ".params->{nickname}."\n";
+
+    $sth->execute( params->{email} || '', params->{nickname} || '' );
 #    template 'display_widget', { widget => $sth->fetchrow_hashref };
 
     my $sha_param_password = sha512_hex(params->{pass});
@@ -68,19 +70,15 @@ post '/login' => sub {
     }
 
     if ( my $rowrh = $sth->fetchrow_hashref ) {
-
-#        my $digest = sha512_hex($rowrh->{password_sha});
-#        print STDERR "\n\n password_sha = ".$rowrh->{password_sha}." : sha_param_password == ".$sha_param_password."\n";
-
         if ($rowrh->{password_sha} eq $sha_param_password ) {
             print STDERR "\n\nlogin for ".params->{email}." with sha_param_password == ".$sha_param_password."\n";
-            session email => params->{email};
 
-            print STDERR "\ncurrent_session_user_is_admin == ".current_session_user_is_admin()."\n"; # KARL
+            session email    => $rowrh->{email} ;
+            session nickname => $rowrh->{nickname} ;
 
             return redirect params->{path} || '/';
         }
-        else {
+        else { # TODO rm this section. eventually.
             print STDERR "\n\n couldn't login ".params->{email}." : sha_param_password == ".$sha_param_password."\n";
         }
     }
@@ -88,16 +86,14 @@ post '/login' => sub {
 
 };
 
-
+## forgot-password page :-
 get '/forgot-password'  => sub { template 'forgot-password' };
-post '/forgot-password' => sub { 
-
+post '/forgot-password' => sub {
+    return template 'error-message' => { error_message => "forgot password hasn't been completed yet. to be written." };
 };
 
-# get the register page :-
+# register page :-
 get '/register' => sub { template 'register' };
-
-# submit the register
 post '/register' => sub {
 
     my $password_okay = _param_password_is_okay();
@@ -161,21 +157,28 @@ post '/register' => sub {
 
 #####################
 # get the change-password page :-
-get '/change-own-password' => sub { template 'change-own-password' };
-# submit the password
-post '/change-own-password' => sub {
+get '/change-password' => sub { template 'change-password' };
+post '/change-password' => sub {
     my $password_okay = _param_password_is_okay();
     return template 'error-message' => { error_message => $password_okay } if lc($password_okay) ne 'ok';
 
-#    return template 'error-message' => { error_message => 'passwords do not match up' };
+    my $sha_param_password = sha512_hex(params->{pass});
 
-    return template 'error-message' => { error_message => "this changing own password hasn't been completed yet. to be written." };
-#    return redirect params->{path} || '/';
+    my $sth = database->prepare(
+       'update user set password_sha = ? where email = ? ',
+    );
+    $sth->execute( $sha_param_password , session('email') );
+
+    #session email => '';
+    #session nickname => '';
+    session->destroy;
+    return template 'error-message' => { error_message => "you will now have to login again" };
 };
-
 
 sub _param_password_is_okay {
     #    returns "ok" , or an "error_message"
+    # used for validating a register or change-password event.
+    # i.e. where we have the params "pass" and "pass2"
 
     #########################
     # validate passwords
@@ -189,50 +192,53 @@ sub _param_password_is_okay {
 }
 
 #####################
-get '/change-other-password' => sub { template 'change-other-password' };
-# submit the password
+get '/change-other-password' => sub {
+
+    if ( ! current_session_user_is_admin() ) {
+        return template 'error-message' => { error_message => "you aren't an Admin user. You cannot change other people's passwords" };
+    }
+    template 'change-other-password' ;
+};
+
 post '/change-other-password' => sub {
 
     if ( ! current_session_user_is_admin() ) {
         return template 'error-message' => { error_message => "you aren't an Admin user. You cannot change other people's passwords" };
     }
 
+    if ( params->{'email-other'} && params->{'nickname-other'} ) {
+        return template 'error-message' => { error_message => "please only specifiy either the other-email or the other-nickname, and not both of them when you are trying to change someone else's password" };
+    }
+
+    ######
     my $password_okay = _param_password_is_okay();
     return template 'error-message' => { error_message => $password_okay } if lc($password_okay) ne 'ok';
 
-#    my $sth = database->prepare(
-#       'select * from user where email = ?',
-#    );
-#
-#    $sth->execute(session('user'));
-#    #$sth->execute(params->{user});
-##    template 'display_widget', { widget => $sth->fetchrow_hashref };
-#
-#    my $sha_param_password = sha512_hex(params->{pass});
-#    if (params->{user} eq 'stderr') {
-#        print STDERR "\n\n stderr !! : sha_param_password == ".$sha_param_password."\n";
-#    }
-#
-#    if ( my $rowrh = $sth->fetchrow_hashref ) {
-#
-##        my $digest = sha512_hex($rowrh->{password_sha});
-##        print STDERR "\n\n password_sha = ".$rowrh->{password_sha}." : sha_param_password == ".$sha_param_password."\n";
-#
-#        if ($rowrh->{password_sha} eq $sha_param_password ) {
-#            print STDERR "\n\nlogin for ".params->{user}." with sha_param_password == ".$sha_param_password."\n";
-#            session user => params->{user};
-#            return redirect params->{path} || '/';
-#        }
-#        else {
-#            print STDERR "\n\n couldn't login ".params->{user}." : sha_param_password == ".$sha_param_password."\n";
-#        }
-#
-#
-#    }
-#
-#    redirect '/login?failed=1';
-#
-    return template 'error-message' => { error_message => "this channging other peoples' passwords hasn't been completed yet. to be written." };
+    ######
+    my $sth = database->prepare(
+       'select * from user where email = ? or nickname = ? ',
+    );
+
+    my $other_email ;
+    $sth->execute( params->{'email-other'} || '', params->{'nickname-other'} || '' );
+    if ( my $rowrh = $sth->fetchrow_hashref ) {
+        $other_email = $rowrh->{email};
+    }
+
+    if ( ! $other_email ){
+        return template 'error-message' => { error_message => "couldn't find the user" } ;
+    }
+
+    my $sha_param_password = sha512_hex(params->{pass});
+
+    my $sth = database->prepare(
+       'update user set password_sha = ? where email = ? ',
+    );
+    $sth->execute( $sha_param_password , $other_email );
+
+    return template 'error-message' => { error_message => "changed password for other user with the email address $other_email" };
+
+
 };
 
 sub current_session_user_is_admin {
@@ -252,8 +258,14 @@ sub current_session_user_is_admin {
     return 0;
 }
 
+hook 'before_template_render' => sub {
+    my $tokens = shift ;
 
-#####################
+    print STDERR "\n\n before template render == " . current_session_user_is_admin()."\n\n";
+    $tokens->{user_is_admin} = current_session_user_is_admin();
+};
+
+##########################################################
 get  '/predictions' => sub { template 'predictions'};
 post '/predictions' => sub {
 
