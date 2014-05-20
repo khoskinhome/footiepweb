@@ -37,7 +37,7 @@ hook 'before' => sub {
         request->path_info('/login');
     }
 };
- 
+
 get '/login' => sub {
     # Display a login page; the original URL they requested is available as
     # vars->{requested_path}, so could be put in a hidden field in the form
@@ -75,6 +75,9 @@ post '/login' => sub {
         if ($rowrh->{password_sha} eq $sha_param_password ) {
             print STDERR "\n\nlogin for ".params->{email}." with sha_param_password == ".$sha_param_password."\n";
             session email => params->{email};
+
+            print STDERR "\ncurrent_session_user_is_admin == ".current_session_user_is_admin()."\n"; # KARL
+
             return redirect params->{path} || '/';
         }
         else {
@@ -85,8 +88,11 @@ post '/login' => sub {
 
 };
 
+
 get '/forgot-password'  => sub { template 'forgot-password' };
-post '/forgot-password' => sub { };
+post '/forgot-password' => sub { 
+
+};
 
 # get the register page :-
 get '/register' => sub { template 'register' };
@@ -94,21 +100,26 @@ get '/register' => sub { template 'register' };
 # submit the register
 post '/register' => sub {
 
-    #########################
-    # validate passwords
-    if ( params->{pass} ne params->{pass2} ) {
-        return template 'error-message' => { error_message => 'passwords do not match up' };
-    }
+    my $password_okay = _param_password_is_okay();
+    return template 'error-message' => { error_message => $password_okay } if lc($password_okay) ne 'ok';
 
-    if ( length (params->{pass}) < 6 ) {
-        return template 'error-message' => { error_message => 'passwords is less than 6 characters long. choose a longer one.' };
-    }
     #########################
     # validate email
     if ( length params->{email} < 6 ) {
         return template 'error-message' => { error_message => 'email is less than 6 characters long. choose a longer one.' };
     }
-    # TODO proper email checking  .
+    # REALLY NAIVE email validity checking ( well its better than nothing )
+    if ( params->{email} !~ /@/ ) {
+        return template 'error-message' => { error_message => 'email doesn\'t have an @ sign in it.' };
+    }
+
+    # TODO proper email checking  . 
+    # Need to send a validate email that creates a checking_token_emailed in the 'user' table
+    # This email will have a hyperlink that comes back to this app with then endpoint something like :-
+    #
+    # http://app-hostname/register-validate/?token=$checking_token_emailed
+    # this will then be confirmed.
+
     my $sth = database->prepare(
        'select * from user where email = ? ',
     );
@@ -153,12 +164,41 @@ post '/register' => sub {
 get '/change-own-password' => sub { template 'change-own-password' };
 # submit the password
 post '/change-own-password' => sub {
-#here karl
+    my $password_okay = _param_password_is_okay();
+    return template 'error-message' => { error_message => $password_okay } if lc($password_okay) ne 'ok';
+
+#    return template 'error-message' => { error_message => 'passwords do not match up' };
+
+    return template 'error-message' => { error_message => "this changing own password hasn't been completed yet. to be written." };
+#    return redirect params->{path} || '/';
 };
+
+
+sub _param_password_is_okay {
+    #    returns "ok" , or an "error_message"
+
+    #########################
+    # validate passwords
+    if ( params->{pass} ne params->{pass2} ) {
+        return 'passwords do not match up';
+    }
+    if ( length (params->{pass}) < 6 ) {
+        return 'passwords is less than 6 characters long. choose a longer one.';
+    }
+    return 'ok';
+}
+
 #####################
 get '/change-other-password' => sub { template 'change-other-password' };
 # submit the password
 post '/change-other-password' => sub {
+
+    if ( ! current_session_user_is_admin() ) {
+        return template 'error-message' => { error_message => "you aren't an Admin user. You cannot change other people's passwords" };
+    }
+
+    my $password_okay = _param_password_is_okay();
+    return template 'error-message' => { error_message => $password_okay } if lc($password_okay) ne 'ok';
 
 #    my $sth = database->prepare(
 #       'select * from user where email = ?',
@@ -192,11 +232,33 @@ post '/change-other-password' => sub {
 #
 #    redirect '/login?failed=1';
 #
+    return template 'error-message' => { error_message => "this channging other peoples' passwords hasn't been completed yet. to be written." };
 };
+
+sub current_session_user_is_admin {
+    # this will return 1 if the current session user is an admin.
+
+    return 0 if ! session('email');
+
+    my $sth = database->prepare(
+       'select * from user where email = ?',
+    );
+
+    $sth->execute(session('email'));
+
+    if ( my $rowrh = $sth->fetchrow_hashref ) {
+        return $rowrh->{is_admin};
+    }
+    return 0;
+}
+
 
 #####################
 get  '/predictions' => sub { template 'predictions'};
-post '/predictions' => sub {}
+post '/predictions' => sub {
+
+    return template 'error-message' => { error_message => "entering your predictions hasn't been completed yet. to be written." };
+}
 
 ;
 
@@ -337,22 +399,5 @@ create table user_competition (
 ######################################
 
 =cut
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 true;
